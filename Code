@@ -1,0 +1,51 @@
+import spotipy
+import spotipy.util as util
+import requests
+
+# Spotify API credentials
+SPOTIPY_CLIENT_ID = 'your_spotify_client_id'
+SPOTIPY_CLIENT_SECRET = 'your_spotify_client_secret'
+SPOTIPY_REDIRECT_URI = 'your_redirect_uri'
+
+# Apple Music API credentials (if available)
+APPLE_MUSIC_API_KEY = 'your_apple_music_api_key'
+
+# Spotify authentication
+token = util.prompt_for_user_token(
+    username='your_spotify_username',
+    client_id=SPOTIPY_CLIENT_ID,
+    client_secret=SPOTIPY_CLIENT_SECRET,
+    redirect_uri=SPOTIPY_REDIRECT_URI,
+    scope='playlist-modify-public'
+)
+
+if token:
+    sp = spotipy.Spotify(auth=token)
+    
+    # Fetch your Spotify playlist (replace with your playlist URI or ID)
+    spotify_playlist_id = 'your_spotify_playlist_id'
+    playlist = sp.user_playlist('your_spotify_username', playlist_id=spotify_playlist_id)
+    
+    # Extract track information from Spotify playlist
+    spotify_tracks = [track['track'] for track in playlist['tracks']['items']]
+    
+    # Initialize Apple Music (if available)
+    headers = {
+        'Authorization': f'Bearer {APPLE_MUSIC_API_KEY}',
+        'Music-User-Token': 'your_apple_music_user_token'
+    }
+    
+    # Convert and add tracks to Apple Music (if available)
+    for track in spotify_tracks:
+        apple_music_track_id = None  # Replace with logic to find the corresponding Apple Music track
+        if apple_music_track_id:
+            # Add the track to your Apple Music playlist
+            response = requests.post(f'https://api.music.apple.com/v1/me/library/playlists/your_apple_music_playlist_id/tracks/{apple_music_track_id}', headers=headers)
+            if response.status_code == 201:
+                print(f"Added track {track['name']} to Apple Music playlist.")
+            else:
+                print(f"Failed to add track {track['name']} to Apple Music: {response.status_code}")
+    
+    print("Playlist synchronization complete.")
+else:
+    print("Can't get token for Spotify.")
